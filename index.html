@@ -27,84 +27,223 @@ main{max-width:560px;margin:0 auto;padding:14px 16px 40px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 .set{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 label.f{display:block;font-size:13px;color:var(--mut)}
+input:disabled{opacity:.6}
 input[type=number]{width:100%;box-sizing:border-box;margin-top:3px;padding:8px;font:600 16px inherit;font-family:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px}
 .btn{font:600 15px inherit;font-family:inherit;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
 .btn.pri{position:relative;overflow:hidden;background:var(--acc);border-color:var(--acc);color:var(--card)}
 .btn.del{color:var(--bad)}
+.btn{white-space:nowrap}#count{text-align:right}
 [hidden]{display:none!important}
 select{width:100%;box-sizing:border-box;margin:3px 0 12px;padding:10px;font:600 16px inherit;font-family:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px}
 #count{font-size:13px;color:var(--mut)}
-#stage{position:relative;width:100%;background-color:var(--mat);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);box-shadow:0 0 0 2px var(--ink);overflow:hidden;user-select:none;-webkit-user-select:none}
-#stage[data-empty]::after{content:"Add your design images, then drag to arrange them";position:absolute;inset:0 0 auto;padding:24px;text-align:center;color:#3d5546;font-weight:600}
-.ob{position:absolute;outline:1px dashed #0b6b3a;cursor:grab;touch-action:none}
-.ob img{position:absolute;pointer-events:none;transform-origin:center}
+#stage{position:relative;width:100%;background-color:var(--mat);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);box-shadow:0 0 0 2px var(--ink);user-select:none;-webkit-user-select:none}
+#stage[data-empty]::after{content:"Add an SVG or EPS file, then drag to arrange it";position:absolute;inset:0 0 auto;padding:24px;text-align:center;color:#3d5546;font-weight:600}
+.ob{position:absolute;outline:1px dashed #0b6b3a;cursor:move;touch-action:none;transform-origin:50% 50%;z-index:1}
+.ob img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .ob.sel{outline:2px solid #0b6b3a;background:rgba(11,107,58,.14)}
+.ob.msel{outline:2px dashed #0b6b3a;background:rgba(11,107,58,.1)}
 .ob.out{outline:2px dashed #c2362b;background:rgba(194,54,43,.2)}
+.gf{position:absolute;outline:2px solid #0b6b3a;pointer-events:none;z-index:6}
+.gf .hd{display:block;pointer-events:auto}
+.mq{position:absolute;border:1.5px dashed #0b6b3a;background:rgba(11,107,58,.12);z-index:8;pointer-events:none}
+.btn[aria-pressed=true]{background:var(--accbg);border-color:var(--acc);color:var(--acc)}
+.hd{display:none;position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;touch-action:none;z-index:3;cursor:pointer}
+.ob.sel .hd{display:block}
+.hd::after{content:"";position:absolute;left:9px;top:9px;width:12px;height:12px;box-sizing:border-box;background:#fff;border:2px solid #0b6b3a}
+.hd.rt{left:50%;top:-34px;cursor:grab}
+.hd.rt::after{border-radius:50%}
+.hd.rt::before{content:"";position:absolute;left:14px;top:21px;width:2px;height:28px;background:#0b6b3a}
+#ctx{position:fixed;z-index:60;min-width:180px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#ctx button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;background:none;color:var(--ink);font:600 15px inherit;font-family:inherit;border-radius:8px;cursor:pointer}
+#ctx button:hover:not(:disabled){background:var(--accbg)}
+#ctx button:disabled{color:var(--mut);cursor:default}
+.hint{font-size:13px;color:var(--mut);margin:10px 2px 0}
+body{overflow-x:hidden}
 #sel{margin-top:12px;display:flex;gap:8px;align-items:end;flex-wrap:wrap}
 #sel label{flex:1 1 90px}
 </style>
 </head>
 <body>
-<div class="bar"><div id="price">RM0.00</div><div id="detail">Add an image to see the price</div></div>
+<div class="bar"><div id="price">RM0.00</div><div id="detail">Add a file to see the price</div></div>
 <main>
-<label class="f">Product<select id="prod"><option value="cut">Vinyl cut sticker</option><option value="banner">Banner</option><option value="print">Sticker print</option><option value="acr">Acrylic</option></select></label>
+<label class="f">Product<select id="prod"><option value="cut">Vinyl cut sticker</option><option value="label">Sticker label</option><option value="banner">Banner</option><option value="bunting">Bunting</option><option value="print">Sticker print</option><option value="acr">Acrylic</option><option value="foam">PVC foam board</option></select></label>
 <section id="simple" class="card set" hidden>
 <label class="f"><span id="lw">Width</span><input id="pw" type="number" min="0" step="any" inputmode="decimal"></label>
 <label class="f"><span id="lh">Height</span><input id="ph" type="number" min="0" step="any" inputmode="decimal"></label>
 <label class="f" id="lt" hidden style="grid-column:1/-1">Thickness<select id="pt" style="margin-bottom:0"><option>2mm</option><option>2.5mm</option><option>3mm</option><option>4mm</option></select></label>
 <label class="f">Quantity<input id="pq" type="number" min="1" step="1" inputmode="numeric"></label>
+<label class="f" id="lx" hidden>Finishing (RM per piece)<input id="px" type="number" min="0" step="any" inputmode="decimal"></label>
 <label class="f"><span id="lr">Rate</span><input id="pr" type="number" min="0" step="any" inputmode="decimal"></label>
+<label class="f" id="lu" hidden style="grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="pu" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Urgent order (+<span id="up">30</span>% fee)</span></label>
+<label class="f" id="ll" hidden style="grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="pl" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>LO/EP fee (+<span id="lp">30</span>%)</span></label>
 </section>
 <div id="cut">
 <section class="card set">
-<label class="f">Roll width (″)<input id="rw" type="number" value="12" min="1" step="0.5" inputmode="decimal"></label>
-<label class="f">Material height (″)<input id="mh" type="number" value="30" min="1" step="1" inputmode="decimal"></label>
-<label class="f">Rate (RM per sq in)<input id="rate" type="number" value="0.15" min="0" step="0.01" inputmode="decimal"></label>
-<label class="f">Cut margin (mm)<input id="mg" type="number" value="2" min="0" step="0.5" inputmode="decimal"></label>
+<label class="f"><span id="lrw">Roll width (″)</span><input id="rw" type="number" value="12" min="1" step="0.5" inputmode="decimal"></label>
+<label class="f"><span id="lmh">Material height (″)</span><input id="mh" type="number" value="30" min="1" step="1" inputmode="decimal"></label>
+<label class="f"><span id="lrt">Rate (RM per sq in)</span><input id="rate" type="number" value="0.15" min="0" step="0.01" inputmode="decimal"></label>
+<label class="f" id="lmg">Cut margin (mm)<input id="mg" type="number" value="2" min="0" step="0.5" inputmode="decimal"></label>
+<label class="f" id="lpt" hidden>Thickness<select id="lpts" style="margin-bottom:0"><option>10mm</option><option>15mm</option><option>20mm</option><option>25mm</option><option>30mm</option></select></label>
+<label class="f" id="lpm" hidden>Material<select id="lpms" style="margin-bottom:0"><option value="mk">White sticker</option><option value="pp">White PP</option><option value="tr">Transparent</option></select></label>
+<div id="lam" hidden style="grid-column:1/-1;display:grid;gap:8px"><label class="f" style="display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="lamg" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Laminate glossy (+RM<span class="lamv"></span> per sq ft)</span></label><label class="f" style="display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="lamm" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Laminate matte (+RM<span class="lamv"></span> per sq ft)</span></label></div>
+<p id="mx2" class="hint" hidden style="grid-column:1/-1;margin:0"></p>
 </section>
-<div class="row"><label class="btn pri">Add images<input id="file" type="file" accept="image/*" multiple style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer"></label><span id="count">In material 0 / 0</span></div>
+<div class="row"><label class="btn pri">Add file<input id="file" type="file" accept=".svg,.eps,image/svg+xml,application/postscript,application/eps,image/x-eps" multiple style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer"></label><button class="btn" id="mm" aria-pressed="false">Select many</button><span id="count">In material 0 / 0</span></div>
 <div id="stage" data-empty></div>
+<p class="hint">Tap a file, then drag a square handle to resize it or the round handle to rotate it. Hold Shift and click to pick several, or drag a box around them (hold the right mouse button). On a phone, turn on Select many. Right-click or long-press for Group and Ungroup (Ctrl+G / Ctrl+Shift+G).</p>
 <section id="sel" class="card" hidden>
-<label class="f">Width (″)<input id="sw" type="number" min="0.1" step="0.1" inputmode="decimal"></label>
+<label class="f" id="lbw">Width (″)<input id="sw" type="number" min="0.2" step="0.1" inputmode="decimal"></label>
+<label class="f" id="lba">Angle (°)<input id="sa" type="number" step="1" inputmode="decimal"></label>
 <button class="btn" id="rot">Rotate 90°</button>
+<button class="btn" id="grp" hidden>Group</button>
+<button class="btn" id="ung">Ungroup</button>
 <button class="btn del" id="rm">Remove</button>
 </section>
 </div>
+<div id="sheet" hidden>
+<section class="card set">
+<label class="f" style="grid-column:1/-1">Material<select id="skMat" style="margin-bottom:0"><option value="mk">White sticker</option><option value="pp">White PP</option><option value="tr">Transparent</option></select></label>
+<label class="f">Shape<select id="skS" style="margin-bottom:0"><option value="c">Circle</option><option value="r">Square / rectangle</option></select></label>
+<label class="f">Number of sheets<input id="skQ" type="number" value="1" min="1" step="1" inputmode="numeric"></label>
+<label class="f"><span id="lkW">Size (cm)</span><input id="skW" type="number" value="5" min="0.1" step="any" inputmode="decimal"></label>
+<label class="f" id="lkH" hidden>Height (cm)<input id="skH" type="number" value="5" min="0.1" step="any" inputmode="decimal"></label>
+<label class="f">Price per sheet (RM)<input id="skP" type="number" value="15" min="0" step="any" inputmode="decimal"></label>
+<label class="f">Total pcs<input id="skT" type="number" disabled></label>
+<div style="grid-column:1/-1;display:grid;gap:8px"><label class="f" style="display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="lbg" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Laminate glossy (+RM<span class="lamv"></span> per sheet)</span></label><label class="f" style="display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="lbm" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Laminate matte (+RM<span class="lamv"></span> per sheet)</span></label></div>
+</section>
+<details class="card" style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Sheet settings</summary>
+<div class="set" style="margin-top:10px">
+<label class="f">Sheet width (″)<input id="skSW" type="number" value="12" min="1" step="any" inputmode="decimal"></label>
+<label class="f">Sheet height (″)<input id="skSH" type="number" value="18" min="1" step="any" inputmode="decimal"></label>
+<label class="f">Margin each side (″)<input id="skM" type="number" value="1" min="0" step="any" inputmode="decimal"></label>
+<label class="f">Gap between (mm)<input id="skG" type="number" value="0.8" min="0" step="any" inputmode="decimal"></label>
+<label class="f" style="grid-column:1/-1">Pcs per sheet (empty = auto)<input id="skO" type="number" min="1" step="1" inputmode="numeric"></label>
+</div></details>
+<p id="skInfo" class="hint"></p>
+<div id="skView" style="margin-top:10px;padding:10px;background:var(--mat);border-radius:12px;text-align:center"></div>
+</div>
 </main>
+<div id="ctx" hidden><button id="cg">Group</button><button id="cu">Ungroup</button><button id="cr">Remove</button></div>
 <script>
 const $=id=>document.getElementById(id),st=$('stage');
-let objs=[],sel=null,uid=0,S=1,prod='cut';
-const cfg=()=>({W:+$('rw').value||12,H:+$('mh').value||30,R:+$('rate').value||0,M:(+$('mg').value||0)/25.4});
-function box(o){const m=cfg().M,bw=o.w+2*m,bh=o.w/o.a+2*m;return o.r%180?{w:bh,h:bw}:{w:bw,h:bh}}
-function layout(){if(prod!=='cut')return;const c=cfg();S=st.clientWidth/c.W;st.style.height=c.H*S+'px';st.style.backgroundSize=S+'px '+S+'px';render()}
+let objs=[],sel=null,uid=0,S=1,prod='cut',curLay='cut';
+const LAY={cut:{W:12,H:30,R:0.15,M:2,objs:[],mg:true},print:{W:48,H:48,R:10,M:0,objs:[],sq:true,lam:true,hint:'Max roll width 4 ft (48″). Price = used height × roll width × rate.',maxW:48,dw:12,m:'mk',mats:{mk:{n:'White sticker',r:10},pp:{n:'White PP',r:10},tr:{n:'Transparent',r:10}}},
+ foam:{W:48,H:96,R:20,M:0,objs:[],sq:true,maxW:48,maxH:96,dw:12,t:'10mm',rates:{'10mm':20,'15mm':20,'20mm':20,'25mm':20,'30mm':20},lw:'Board width (″)',lh:'Board height (″)',hint:'Max board 4 × 8 ft (48″ × 96″). Price = used height × board width × rate.'}};
+const LAM=4.5; // laminate glossy or matte: RM per sq ft (Sticker print), RM per sheet (Sticker label)
+const isLay=k=>k in LAY;
+const cfg=()=>{const L=LAY[curLay]||{};return{W:Math.min(+$('rw').value||12,L.maxW||1e9),H:Math.min(+$('mh').value||30,L.maxH||1e9),R:(+$('rate').value||0)/(L.sq?144:1),M:(+$('mg').value||0)/25.4}};
+function hullBox(o){
+ const cw=o.w,ch=o.w/o.a,t=o.r*Math.PI/180,cs=Math.cos(t),sn=Math.sin(t);
+ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ for(const[u,v]of o.hull){const dx=(u-.5)*cw,dy=(v-.5)*ch,x=dx*cs-dy*sn,y=dx*sn+dy*cs;
+  if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+ return{x0:o.cx+x0,y0:o.cy+y0,x1:o.cx+x1,y1:o.cy+y1};
+}
+function bounds(o){const m=cfg().M,b=hullBox(o);return{x0:b.x0-m,y0:b.y0-m,x1:b.x1+m,y1:b.y1+m}}
+function layout(){if(!isLay(prod))return;const L=LAY[curLay];if(L.maxW&&+$('rw').value>L.maxW)$('rw').value=L.maxW;if(L.maxH&&+$('mh').value>L.maxH)$('mh').value=L.maxH;const c=cfg(),u=L.sq?12:1;S=st.clientWidth/c.W;st.style.height=c.H*S+'px';st.style.backgroundSize=S*u+'px '+S*u+'px';render()}
+let sels=[],multiMode=false,lastPT='mouse',gf=null;
+const HND=[[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]];
+const posOf=ev=>{const R=st.getBoundingClientRect();return[(ev.clientX-R.left)/S,(ev.clientY-R.top)/S]};
+const snapOf=l=>l.map(o=>({o,cx:o.cx,cy:o.cy,w:o.w,r:o.r}));
+function gbox(list){
+ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ for(const o of list){const b=hullBox(o);if(b.x0<x0)x0=b.x0;if(b.y0<y0)y0=b.y0;if(b.x1>x1)x1=b.x1;if(b.y1>y1)y1=b.y1}
+ return{x0,y0,x1,y1};
+}
+function rotGroup(snap,gx,gy,d){
+ const t=d*Math.PI/180,cs=Math.cos(t),sn=Math.sin(t);
+ for(const s of snap){const dx=s.cx-gx,dy=s.cy-gy;s.o.cx=gx+dx*cs-dy*sn;s.o.cy=gy+dx*sn+dy*cs;s.o.r=(((s.r+d)%360)+360)%360}
+}
+function setSel(a){
+ sels=a;sel=a.length===1?a[0]:null;
+ $('sel').hidden=!a.length;$('lbw').hidden=$('lba').hidden=a.length>1;$('grp').hidden=a.length<2;
+ render();
+}
+const select=o=>setSel(o?[o]:[]);
 function render(){
- const c=cfg();let inn=0,top=1e9,bot=-1e9;
+ const c=cfg(),e=.001,multi=sels.length>1;let inn=0,top=1e9,bot=-1e9;
  objs.forEach(o=>{
-  const b=box(o),cw=o.w,ch=o.w/o.a,e=.001;
-  Object.assign(o.el.style,{left:o.x*S+'px',top:o.y*S+'px',width:b.w*S+'px',height:b.h*S+'px'});
-  const i=o.img.style;i.width=cw*S+'px';i.height=ch*S+'px';i.left=(b.w-cw)/2*S+'px';i.top=(b.h-ch)/2*S+'px';i.transform='rotate('+o.r+'deg)';
-  const out=o.x<-e||o.y<-e||o.x+b.w>c.W+e||o.y+b.h>c.H+e;
+  const cw=o.w,ch=o.w/o.a,b=bounds(o),on=sels.includes(o);
+  Object.assign(o.el.style,{left:(o.cx-cw/2)*S+'px',top:(o.cy-ch/2)*S+'px',width:cw*S+'px',height:ch*S+'px',transform:'rotate('+o.r+'deg)',zIndex:on?5:1});
+  const out=b.x0<-e||b.y0<-e||b.x1>c.W+e||b.y1>c.H+e;
   if(!out)inn++;
-  o.el.classList.toggle('out',out);o.el.classList.toggle('sel',o===sel);
-  top=Math.min(top,o.y);bot=Math.max(bot,o.y+b.h);
+  o.el.classList.toggle('out',out);o.el.classList.toggle('sel',o===sel);o.el.classList.toggle('msel',multi&&on);
+  top=Math.min(top,b.y0);bot=Math.max(bot,b.y1);
  });
  const h=objs.length?bot-top:0;
- $('price').textContent='RM'+(h*c.W*c.R).toFixed(2);
- $('detail').textContent=objs.length?h.toFixed(2)+'″ tall × '+c.W+'″ × RM'+c.R.toFixed(2):'Add an image to see the price';
- $('count').textContent='In material '+inn+' / '+objs.length;
+ const L=LAY[curLay],lam=L.lam?($('lamg').checked?'glossy':$('lamm').checked?'matte':''):'';
+ $('price').textContent='RM'+(h*c.W*(c.R+(lam?LAM/144:0))).toFixed(2);
+ $('detail').textContent=objs.length?(L.sq?(L.mats?L.mats[L.m].n:L.t)+' · '+(+(h/12).toFixed(2))+' ft tall × '+(+(c.W/12).toFixed(2))+' ft × RM'+(+(c.R*144).toFixed(2))+' per sq ft'+(lam?' + RM'+LAM+' '+lam+' laminate per sq ft':''):h.toFixed(2)+'″ tall × '+c.W+'″ × RM'+c.R.toFixed(2)):'Add a file to see the price';
+ $('count').textContent='In material '+inn+' / '+objs.length+(multi?' · '+sels.length+' selected':'');
  if(objs.length)st.removeAttribute('data-empty');else st.setAttribute('data-empty','');
+ if(sel){if(document.activeElement!==$('sw'))$('sw').value=+sel.w.toFixed(2);if(document.activeElement!==$('sa'))$('sa').value=Math.round(sel.r)}
+ if(!gf)mkGf();
+ if(multi){const g=gbox(sels);Object.assign(gf.style,{display:'block',left:g.x0*S+'px',top:g.y0*S+'px',width:(g.x1-g.x0)*S+'px',height:(g.y1-g.y0)*S+'px'})}else gf.style.display='none';
 }
-function select(o){sel=o;$('sel').hidden=!o;if(o)$('sw').value=+o.w.toFixed(2);render()}
+function mkGf(){
+ gf=document.createElement('div');gf.className='gf';gf.style.display='none';
+ HND.forEach(([hx,hy])=>{const h=document.createElement('div');h.className='hd';h.dataset.hx=hx;h.dataset.hy=hy;h.style.left=(50+hx*50)+'%';h.style.top=(50+hy*50)+'%';gf.appendChild(h)});
+ const r=document.createElement('div');r.className='hd rt';r.dataset.rot='1';gf.appendChild(r);
+ st.appendChild(gf);
+ gf.addEventListener('pointerdown',e=>{
+  const h=e.target.closest&&e.target.closest('.hd');if(!h||e.button>0)return;
+  e.preventDefault();e.stopPropagation();gf.setPointerCapture(e.pointerId);
+  const sn=snapOf(sels),g=gbox(sels),gx=(g.x0+g.x1)/2,gy=(g.y0+g.y1)/2,gw=g.x1-g.x0,gh=g.y1-g.y0,p0=posOf(e);
+  let mv;
+  if(h.dataset.rot){
+   const a0=Math.atan2(p0[1]-gy,p0[0]-gx);
+   mv=ev=>{const p=posOf(ev);let d=(Math.atan2(p[1]-gy,p[0]-gx)-a0)*180/Math.PI;const q=Math.round(d/15)*15;if(Math.abs(d-q)<4)d=q;rotGroup(sn,gx,gy,d);render()};
+  }else{
+   const hx=+h.dataset.hx,hy=+h.dataset.hy,ax=gx-hx*gw/2,ay=gy-hy*gh/2;
+   mv=ev=>{
+    const p=posOf(ev),dx=p[0]-ax,dy=p[1]-ay;
+    let k=hx&&hy?(dx*hx*gw+dy*hy*gh)/(gw*gw+gh*gh):hx?dx*hx/gw:dy*hy/gh;k=Math.max(.05,k);
+    sn.forEach(s=>{s.o.w=Math.max(.2,s.w*k);s.o.cx=ax+(s.cx-ax)*k;s.o.cy=ay+(s.cy-ay)*k});render();
+   };
+  }
+  const up=()=>{gf.removeEventListener('pointermove',mv);gf.removeEventListener('pointerup',up);gf.removeEventListener('pointercancel',up)};
+  gf.addEventListener('pointermove',mv);gf.addEventListener('pointerup',up);gf.addEventListener('pointercancel',up);
+ });
+}
 function mk(o){
  const d=document.createElement('div');d.className='ob';
- const i=new Image();i.src=o.src;i.draggable=false;d.appendChild(i);o.el=d;o.img=i;st.appendChild(d);
+ const i=new Image();i.src=o.src;i.draggable=false;d.appendChild(i);
+ HND.forEach(([hx,hy])=>{
+  const h=document.createElement('div');h.className='hd';h.dataset.hx=hx;h.dataset.hy=hy;h.style.left=(50+hx*50)+'%';h.style.top=(50+hy*50)+'%';d.appendChild(h)});
+ const r=document.createElement('div');r.className='hd rt';r.dataset.rot='1';d.appendChild(r);
+ o.el=d;st.appendChild(d);
  d.addEventListener('pointerdown',e=>{
-  select(o);const sx=e.clientX,sy=e.clientY,ox=o.x,oy=o.y;d.setPointerCapture(e.pointerId);d.style.cursor='grabbing';
-  const mv=ev=>{o.x=ox+(ev.clientX-sx)/S;o.y=oy+(ev.clientY-sy)/S;render()};
-  const up=()=>{d.style.cursor='';d.removeEventListener('pointermove',mv);d.removeEventListener('pointerup',up);d.removeEventListener('pointercancel',up)};
+  if(e.button>0)return;
+  e.preventDefault();
+  const h=e.target.closest&&e.target.closest('.hd'),add=e.shiftKey||multiMode;
+  if(h){if(sel!==o)setSel([o])}
+  else if(add){setSel(sels.includes(o)?sels.filter(q=>q!==o):sels.concat(o));if(!sels.includes(o))return}
+  else if(!sels.includes(o))setSel([o]);
+  d.setPointerCapture(e.pointerId);
+  const pos=posOf,p0=pos(e),cx0=o.cx,cy0=o.cy,w0=o.w,h0=o.w/o.a,t0=o.r*Math.PI/180,ux=Math.cos(t0),uy=Math.sin(t0),vx=-uy,vy=ux;
+  let mv;
+  if(!h){const sn=snapOf(sels);mv=ev=>{const p=pos(ev),dx=p[0]-p0[0],dy=p[1]-p0[1];sn.forEach(s=>{s.o.cx=s.cx+dx;s.o.cy=s.cy+dy});render()}}
+  else if(h.dataset.rot)mv=ev=>{const p=pos(ev);let a=Math.atan2(p[1]-o.cy,p[0]-o.cx)*180/Math.PI+90;const q=Math.round(a/15)*15;if(Math.abs(a-q)<4)a=q;o.r=((a%360)+360)%360;render()};
+  else{
+   const hx=+h.dataset.hx,hy=+h.dataset.hy,ax=cx0-ux*hx*w0/2-vx*hy*h0/2,ay=cy0-uy*hx*w0/2-vy*hy*h0/2;
+   mv=ev=>{
+    const p=pos(ev),dx=p[0]-ax,dy=p[1]-ay,du=dx*ux+dy*uy,dv=dx*vx+dy*vy;
+    const k=hx&&hy?(du*hx*w0+dv*hy*h0)/(w0*w0+h0*h0):hx?du*hx/w0:dv*hy/h0;
+    const nw=Math.max(.2,k*w0),nh=h0*nw/w0;
+    o.w=nw;o.cx=ax+ux*hx*nw/2+vx*hy*nh/2;o.cy=ay+uy*hx*nw/2+vy*hy*nh/2;render();
+   };
+  }
+  const up=()=>{d.removeEventListener('pointermove',mv);d.removeEventListener('pointerup',up);d.removeEventListener('pointercancel',up)};
   d.addEventListener('pointermove',mv);d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up);
  });
+}
+function hullOf(P){
+ P=P.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+ const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]),L=[],U=[];
+ for(const p of P){while(L.length>1&&cr(L[L.length-2],L[L.length-1],p)<=0)L.pop();L.push(p)}
+ for(let i=P.length-1;i>=0;i--){const p=P[i];while(U.length>1&&cr(U[U.length-2],U[U.length-1],p)<=0)U.pop();U.push(p)}
+ U.pop();L.pop();return L.concat(U);
 }
 function trim(u){return new Promise((ok,no)=>{
  const i=new Image();
@@ -121,44 +260,281 @@ function trim(u){return new Promise((ok,no)=>{
   g.putImageData(d,0,0);
   const cw=x1-x0+1,ch=y1-y0+1,o=document.createElement('canvas');o.width=cw;o.height=ch;
   o.getContext('2d').drawImage(c,x0,y0,cw,ch,0,0,cw,ch);
-  ok({src:o.toDataURL('image/png'),a:cw/ch});
+  const pts=[],step=Math.max(1,Math.floor(ch/160)),ys=[];
+  for(let y=y0;y<=y1;y+=step)ys.push(y);if(ys[ys.length-1]!==y1)ys.push(y1);
+  for(const y of ys){let a=-1,b=-1;for(let x=x0;x<=x1;x++)if(p[(y*w+x)*4+3]>20){if(a<0)a=x;b=x}
+   if(a>=0)pts.push([a,y],[b+1,y],[a,y+1],[b+1,y+1])}
+  const hull=hullOf(pts).map(q=>[(q[0]-x0)/cw,(q[1]-y0)/ch]);
+  ok({src:o.toDataURL('image/png'),a:cw/ch,hull,x0,y0,cw,ch});
  };
  i.onerror=no;i.src=u;
 })}
 function add(t){
- const c=cfg(),b=objs.length?Math.max(...objs.map(q=>q.y+box(q).h)):0;
- const o={id:++uid,src:t.src,a:t.a,w:Math.min(4,c.W/2),r:0,x:0,y:b};
+ const c=cfg(),top=objs.length?Math.max(...objs.map(q=>bounds(q).y1)):0;
+ const o={id:++uid,src:t.src,a:t.a,hull:t.hull,w:Math.min(LAY[curLay].dw||4,c.W/2),r:0,cx:0,cy:0,svg:t.svg,box:{x0:t.x0,y0:t.y0,cw:t.cw,ch:t.ch}};
+ const b=bounds(o);o.cx=-b.x0;o.cy=top-b.y0;
  objs.push(o);mk(o);select(o);
 }
-const rd=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(f)});
+const SKIP=new Set(['defs','style','title','desc','metadata','clippath','mask','lineargradient','radialgradient','pattern','symbol','filter','marker','script','namedview']);
+const drawable=el=>[...el.children].filter(k=>!SKIP.has(k.localName.toLowerCase()));
+function splitSvg(t){
+ const d=new DOMParser().parseFromString(t,'image/svg+xml'),root=d.documentElement;
+ if(!root||d.querySelector('parsererror'))return null;
+ const path=[];let cont=root;
+ for(;;){const k=drawable(cont);if(k.length===1&&k[0].localName==='g'){path.push([...cont.children].indexOf(k[0]));cont=k[0]}else break}
+ const kids=drawable(cont);if(kids.length<2)return null;
+ return kids.map((_,n)=>{
+  const c=root.cloneNode(true);let cc=c;for(const i of path)cc=cc.children[i];
+  drawable(cc).forEach((k,j)=>{if(j!==n)k.remove()});
+  return new XMLSerializer().serializeToString(c);
+ });
+}
+let nt=null;
+function note(t){$('count').textContent=t;clearTimeout(nt);nt=setTimeout(render,4500)}
+async function piecesOf(o){
+ if(o.children){
+  const k=o.w/o.w0,t=o.r*Math.PI/180,cs=Math.cos(t),sn=Math.sin(t);
+  return o.children.map(c=>({id:++uid,src:c.src,a:c.a,hull:c.hull,svg:c.svg,box:c.box,children:c.children,w0:c.w0,
+   w:c.w*k,r:(((c.r+o.r)%360)+360)%360,cx:o.cx+(c.dx*cs-c.dy*sn)*k,cy:o.cy+(c.dx*sn+c.dy*cs)*k}));
+ }
+ if(!o.svg)return "Only SVG files can be ungrouped. Save the EPS as SVG from Illustrator.";
+ const parts=splitSvg(o.svg);
+ if(!parts)return 'Nothing to ungroup: this file is a single shape.';
+ if(parts.length>150)return 'This file has '+parts.length+' parts. Group them into fewer groups in Illustrator first.';
+ const made=[];
+ for(const txt of parts){try{made.push([await trim(svgUrl(txt)),txt])}catch(_){}}
+ if(made.length<2)return 'Nothing to ungroup: this file is a single shape.';
+ const sc=o.w/o.box.cw,t0=o.r*Math.PI/180,cs=Math.cos(t0),sn=Math.sin(t0),ox=o.box.x0+o.box.cw/2,oy=o.box.y0+o.box.ch/2;
+ return made.map(([t,txt])=>{
+  const lx=(t.x0+t.cw/2-ox)*sc,ly=(t.y0+t.ch/2-oy)*sc;
+  return{id:++uid,src:t.src,a:t.a,hull:t.hull,w:t.cw*sc,r:o.r,cx:o.cx+lx*cs-ly*sn,cy:o.cy+lx*sn+ly*cs,svg:txt,box:{x0:t.x0,y0:t.y0,cw:t.cw,ch:t.ch}};
+ });
+}
+async function ungroupSel(){
+ const list=sels.slice();if(!list.length)return;
+ note('Ungrouping...');
+ const out=[];let split=0,why='';
+ for(const o of list){
+  const r=await piecesOf(o);
+  if(typeof r==='string'){why=r;continue}
+  objs=objs.filter(q=>q!==o);o.el.remove();r.forEach(n=>{objs.push(n);mk(n);out.push(n)});split++;
+ }
+ if(!split){setSel(list);return note(list.length>1?'Nothing to ungroup in the selected files.':why)}
+ setSel(out);note('Ungrouped into '+out.length+' pieces. Drag to move them, or click empty space to deselect.');
+}
+async function groupSel(){
+ const list=objs.filter(o=>sels.includes(o));
+ if(list.length<2)return note('Select 2 or more files first (Shift+click, or drag a box with the right mouse button).');
+ note('Grouping...');
+ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ for(const o of list){
+  const w=o.w,h=o.w/o.a,t=o.r*Math.PI/180,hw=(w*Math.abs(Math.cos(t))+h*Math.abs(Math.sin(t)))/2,hh=(w*Math.abs(Math.sin(t))+h*Math.abs(Math.cos(t)))/2;
+  x0=Math.min(x0,o.cx-hw);x1=Math.max(x1,o.cx+hw);y0=Math.min(y0,o.cy-hh);y1=Math.max(y1,o.cy+hh);
+ }
+ const ppi=Math.min(600,1000/Math.max(x1-x0,y1-y0,.01)),W=Math.max(1,Math.round((x1-x0)*ppi)),H=Math.max(1,Math.round((y1-y0)*ppi));
+ const imgs=await Promise.all(list.map(o=>new Promise(ok=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>ok(null);i.src=o.src})));
+ const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+ list.forEach((o,n)=>{if(!imgs[n])return;const w=o.w*ppi,h=o.w/o.a*ppi;g.save();g.translate((o.cx-x0)*ppi,(o.cy-y0)*ppi);g.rotate(o.r*Math.PI/180);g.drawImage(imgs[n],-w/2,-h/2,w,h);g.restore()});
+ let t;try{t=await trim(cv.toDataURL('image/png'))}catch(_){return note('Could not group these files.')}
+ const w=t.cw/ppi,cx=x0+(t.x0+t.cw/2)/ppi,cy=y0+(t.y0+t.ch/2)/ppi;
+ const G={id:++uid,src:t.src,a:t.a,hull:t.hull,w,w0:w,r:0,cx,cy,
+  children:list.map(m=>({src:m.src,a:m.a,hull:m.hull,svg:m.svg,box:m.box,children:m.children,w0:m.w0,w:m.w,r:m.r,dx:m.cx-cx,dy:m.cy-cy}))};
+ list.forEach(o=>o.el.remove());objs=objs.filter(o=>!list.includes(o));
+ objs.push(G);mk(G);setSel([G]);
+ note('Grouped '+list.length+' files into one. Right-click it to Ungroup.');
+}
+function hideCtx(){$('ctx').hidden=true}
+function showCtx(x,y){
+ const m=$('ctx');m.hidden=false;
+ const ok=sels.some(o=>o.children||(o.svg&&splitSvg(o.svg)));
+ $('cu').disabled=!ok;$('cu').title=ok?'':'Single shape or not an SVG';
+ $('cg').disabled=sels.length<2;$('cg').title=sels.length<2?'Select 2 or more files first':'';
+ $('cg').onclick=()=>{hideCtx();groupSel()};
+ $('cu').onclick=()=>{hideCtx();ungroupSel()};$('cr').onclick=()=>{hideCtx();$('rm').onclick()};
+ m.style.left=Math.max(4,Math.min(x,innerWidth-m.offsetWidth-4))+'px';m.style.top=Math.max(4,Math.min(y,innerHeight-m.offsetHeight-4))+'px';
+}
+document.addEventListener('pointerdown',e=>{lastPT=e.pointerType||'mouse';if(!e.target.closest('#ctx'))hideCtx()},true);
+addEventListener('keydown',e=>{
+ if(e.key==='Escape')hideCtx();
+ if(/INPUT|SELECT|TEXTAREA/.test((document.activeElement||{}).tagName||''))return;
+ if((e.key==='Delete'||e.key==='Backspace')&&sels.length){e.preventDefault();$('rm').onclick()}
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'&&isLay(prod)){e.preventDefault();setSel(objs.slice())}
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='g'&&isLay(prod)){e.preventDefault();e.shiftKey?ungroupSel():groupSel()}
+});
+addEventListener('scroll',hideCtx,true);
+$('ung').onclick=()=>ungroupSel();
+$('grp').onclick=()=>groupSel();
+$('mm').onclick=()=>{multiMode=!multiMode;$('mm').setAttribute('aria-pressed',multiMode)};
+st.addEventListener('contextmenu',e=>{
+ e.preventDefault();if(lastPT==='mouse')return;
+ const el=e.target.closest('.ob'),o=el&&objs.find(q=>q.el===el);
+ if(o){if(!sels.includes(o))setSel([o]);showCtx(e.clientX,e.clientY)}
+});
+st.addEventListener('pointerdown',e=>{
+ const right=e.button===2;
+ if(!right&&(e.button!==0||e.target!==st))return;
+ const add=e.shiftKey||multiMode;
+ if(!right&&e.pointerType!=='mouse'){if(!add)setSel([]);return}
+ st.setPointerCapture(e.pointerId);
+ const R=st.getBoundingClientRect(),x0=e.clientX,y0=e.clientY,base=add?sels.slice():[],tgt=e.target;
+ const q=document.createElement('div');q.className='mq';st.appendChild(q);let moved=false;
+ const mv=ev=>{
+  if(!moved&&Math.hypot(ev.clientX-x0,ev.clientY-y0)<4)return;moved=true;
+  const l=Math.min(x0,ev.clientX)-R.left,t=Math.min(y0,ev.clientY)-R.top;
+  Object.assign(q.style,{left:l+'px',top:t+'px',width:Math.abs(ev.clientX-x0)+'px',height:Math.abs(ev.clientY-y0)+'px'});
+ };
+ const up=ev=>{
+  st.removeEventListener('pointermove',mv);st.removeEventListener('pointerup',up);st.removeEventListener('pointercancel',up);q.remove();
+  if(moved){
+   const a=(Math.min(x0,ev.clientX)-R.left)/S,b=(Math.min(y0,ev.clientY)-R.top)/S,c=(Math.max(x0,ev.clientX)-R.left)/S,d=(Math.max(y0,ev.clientY)-R.top)/S;
+   const hit=objs.filter(o=>{const h=hullBox(o);return h.x1>=a&&h.x0<=c&&h.y1>=b&&h.y0<=d});
+   setSel([...new Set(base.concat(hit))]);
+  }else if(right){
+   const el=tgt.closest&&tgt.closest('.ob'),o=el&&objs.find(z=>z.el===el);
+   if(o){if(!sels.includes(o))setSel([o]);showCtx(ev.clientX,ev.clientY)}
+  }else if(!add)setSel([]);
+ };
+ st.addEventListener('pointermove',mv);st.addEventListener('pointerup',up);st.addEventListener('pointercancel',up);
+});
+const tx=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsText(f)});
+function cssPx(t){const m=/^\s*([\d.]+(?:e[+-]?\d+)?)\s*([a-z%]*)/i.exec(t||'');if(!m)return 0;const u=m[2].toLowerCase();if(u==='%')return 0;return parseFloat(m[1])*({'':1,px:1,mm:96/25.4,cm:96/2.54,in:96,pt:96/72,pc:16}[u]||1)}
+function svgUrl(t){
+ const d=new DOMParser().parseFromString(t,'image/svg+xml'),v=d.documentElement;
+ if(!v||v.nodeName.toLowerCase()!=='svg'||d.querySelector('parsererror'))throw new Error('bad svg');
+ const b=(v.getAttribute('viewBox')||'').trim().split(/[\s,]+/).map(Number);let W,H;
+ if(b.length===4&&b[2]>0&&b[3]>0){W=b[2];H=b[3]}
+ else{W=cssPx(v.getAttribute('width'));H=cssPx(v.getAttribute('height'));if(!(W>0&&H>0))throw new Error('no size');v.setAttribute('viewBox','0 0 '+W+' '+H)}
+ const k=1000/Math.max(W,H);v.setAttribute('width',Math.round(W*k));v.setAttribute('height',Math.round(H*k));
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(v));
+}
+const GS='https://cdn.jsdelivr.net/npm/@bentopdf/gs-wasm@0.1.1/assets/';
+let gsF=null;
+function gsFactory(){
+ return gsF||(gsF=(async()=>{
+  try{const m=await import(GS+'gs.js');return m.default||m}
+  catch(_){
+   const r=await fetch(GS+'gs.js');if(!r.ok)throw new Error('reader download '+r.status);
+   const m=await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(await r.text()));
+   return m.default||m;
+  }
+ })().catch(e=>{gsF=null;throw e}));
+}
+const dataUrl=b=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(b)});
+async function epsUrl(f){
+ $('count').textContent='Loading EPS reader (about 10 MB the first time)...';
+ const fac=await gsFactory(),data=new Uint8Array(await f.arrayBuffer());
+ for(const dev of ['pngalpha','png16m']){
+  const mod=await fac({locateFile:q=>q.endsWith('.wasm')?GS+'gs.wasm':GS+q,print:()=>{},printErr:()=>{}});
+  try{mod.callMain(['--version'])}catch(_){}
+  mod.FS.writeFile('/tmp/in.eps',data);
+  let code=1;
+  try{code=mod.callMain(['-dSAFER','-dBATCH','-dNOPAUSE','-dEPSCrop','-sDEVICE='+dev,'-r150','-dTextAlphaBits=4','-dGraphicsAlphaBits=4','-sOutputFile=/tmp/out.png','/tmp/in.eps'])}catch(_){}
+  let out=null;try{out=mod.FS.readFile('/tmp/out.png')}catch(_){}
+  if(code===0&&out&&out.length)return dataUrl(new Blob([out],{type:'image/png'}));
+ }
+ throw new Error('could not draw this EPS');
+}
 $('file').onchange=async e=>{
- const fs=[...e.target.files];let bad=0;
- for(const f of fs){try{add(await trim(await rd(f)))}catch(_){bad++}}
- e.target.value='';
- if(bad)$('count').textContent='Could not read '+bad+' file'+(bad>1?'s':'')+'. Try PNG or JPG.';
+ const fs=[...e.target.files];let bad=0,skip=0,why='';
+ for(const f of fs){
+  const n=f.name.toLowerCase();
+  try{
+   if(n.endsWith('.svg')){const x=await tx(f),t=await trim(svgUrl(x));t.svg=x;add(t)}
+   else if(n.endsWith('.eps'))add(await trim(await epsUrl(f)));
+   else skip++;
+  }catch(err){bad++;why=String(err&&err.message||err)}
+ }
+ e.target.value='';render();
+ if(skip)$('count').textContent='Only SVG or EPS files are supported.';
+ else if(bad)$('count').textContent='Could not open '+bad+' file'+(bad>1?'s':'')+'. In Illustrator, use Save As SVG (convert text to outlines). ['+why+']';
 };
-$('sw').oninput=e=>{const v=+e.target.value;if(sel&&v>0){sel.w=v;render()}};
-$('rot').onclick=()=>{if(sel){sel.r=(sel.r+90)%360;render()}};
-$('rm').onclick=()=>{if(sel){sel.el.remove();objs=objs.filter(o=>o!==sel);select(null)}};
-st.addEventListener('pointerdown',e=>{if(e.target===st)select(null)});
+$('sw').oninput=e=>{const v=+e.target.value;if(sel&&v>=.2){sel.w=v;render()}};
+$('sa').oninput=e=>{const v=parseFloat(e.target.value);if(sel&&isFinite(v)){sel.r=((v%360)+360)%360;render()}};
+$('rot').onclick=()=>{
+ if(sel){sel.r=(sel.r+90)%360;render()}
+ else if(sels.length>1){const g=gbox(sels);rotGroup(snapOf(sels),(g.x0+g.x1)/2,(g.y0+g.y1)/2,90);render()}
+};
+$('rm').onclick=()=>{if(!sels.length)return;const dead=sels.slice();dead.forEach(o=>o.el.remove());objs=objs.filter(o=>!dead.includes(o));setSel([])};
 ['rw','mh','rate','mg'].forEach(id=>$(id).addEventListener('input',layout));
 addEventListener('resize',layout);
-const P={cut:{},banner:{u:'ft',sq:'sq ft',w:6,h:3,q:1,rate:1.5},print:{u:'cm',sq:'sq cm',w:10,h:10,q:1,rate:0.02},acr:{u:'in',sq:'sq in',w:8,h:12,q:1,rate:0.26,t:'3mm',rates:{'2mm':0.19,'2.5mm':0.23,'3mm':0.26,'4mm':0.32}}};
+const URG=30; // urgent fee, percent
+const LOEP=30; // LO/EP fee, percent
+const P={cut:{},banner:{u:'ft',sq:'sq ft',w:6,h:3,q:1,rate:1.5,urg:false,loep:false},bunting:{u:'ft',sq:'sq ft',w:2,h:6,q:1,rate:1.7,x:4,urg:false,loep:false},acr:{u:'in',sq:'sq in',w:8,h:12,q:1,rate:0.26,t:'3mm',rates:{'2mm':0.19,'2.5mm':0.23,'3mm':0.26,'4mm':0.32}}};
 function calc(){
- const p=P[prod],w=+$('pw').value||0,h=+$('ph').value||0,q=Math.max(1,+$('pq').value||1),r=+$('pr').value||0;
- $('price').textContent='RM'+(w*h*r*q).toFixed(2);
- $('detail').textContent=w+' × '+h+' '+p.u+(p.rates?' ('+p.t+')':'')+' = '+(+(w*h).toFixed(2))+' '+p.sq+' × RM'+r.toFixed(2)+(q>1?' × '+q:'');
+ const p=P[prod],w=+$('pw').value||0,h=+$('ph').value||0,q=Math.max(1,+$('pq').value||1),r=+$('pr').value||0,x=p.x!==undefined?(+$('px').value||0):0;
+ const base=(w*h*r+x)*q,urg=p.urg!==undefined&&$('pu').checked,lo=p.loep!==undefined&&$('pl').checked,fee=urg?base*URG/100:0,fee2=lo?base*LOEP/100:0;
+ $('price').textContent='RM'+(base+fee+fee2).toFixed(2);
+ let d=w+' × '+h+' '+p.u+(p.rates?' ('+p.t+')':'')+' = '+(+(w*h).toFixed(2))+' '+p.sq+' × RM'+r.toFixed(2);
+ if(p.x!==undefined)d+=' + RM'+x.toFixed(2);
+ if(q>1)d=(p.x!==undefined?'('+d+')':d)+' × '+q;
+ if(urg)d+=' + RM'+fee.toFixed(2)+' urgent ('+URG+'%)';
+ if(lo)d+=' + RM'+fee2.toFixed(2)+' LO/EP ('+LOEP+'%)';
+ $('detail').textContent=d;
+}
+function loadLay(k){
+ const A=LAY[curLay];A.W=$('rw').value;A.H=$('mh').value;A.R=$('rate').value;A.M=$('mg').value;A.objs=objs;
+ if(curLay!==k){setSel([]);objs.forEach(o=>o.el.remove())}
+ curLay=k;const L=LAY[k];objs=L.objs;objs.forEach(o=>st.appendChild(o.el));
+ $('rw').value=L.W;$('mh').value=L.H;$('rate').value=L.R;$('mg').value=L.M;
+ $('lmg').hidden=!L.mg;$('lrt').textContent=L.sq?'Rate (RM per sq ft)':'Rate (RM per sq in)';$('rate').step=L.sq?'0.5':'0.01';
+ $('lam').hidden=!L.lam;$('lpm').hidden=!L.mats;if(L.mats)$('lpms').value=L.m;$('lpt').hidden=!L.rates;if(L.rates)$('lpts').value=L.t;
+ $('mx2').hidden=!L.hint;$('mx2').textContent=L.hint||'';$('lrw').textContent=L.lw||'Roll width (″)';$('lmh').textContent=L.lh||'Material height (″)';
 }
 function setProd(k){
- prod=k;const c=k==='cut',p=P[k];$('cut').hidden=!c;$('simple').hidden=c;
- if(c){layout();return}
+ prod=k;const c=isLay(k),sh=k==='label',p=P[k];$('cut').hidden=!c;$('simple').hidden=c||sh;$('sheet').hidden=!sh;
+ if(c){loadLay(k);layout();return}
+ if(sh){sheetCalc();return}
  $('lw').textContent='Width ('+p.u+')';$('lh').textContent='Height ('+p.u+')';$('lr').textContent='Rate (RM per '+p.sq+')';
  $('lt').hidden=!p.rates;if(p.rates)$('pt').value=p.t;
+ $('lx').hidden=p.x===undefined;if(p.x!==undefined)$('px').value=p.x;
+ $('lu').hidden=p.urg===undefined;if(p.urg!==undefined)$('pu').checked=!!p.urg;$('up').textContent=URG;
+ $('ll').hidden=p.loep===undefined;if(p.loep!==undefined)$('pl').checked=!!p.loep;$('lp').textContent=LOEP;
  $('pw').value=p.w;$('ph').value=p.h;$('pq').value=p.q;$('pr').value=p.rate;calc();
 }
+const MAT={mk:{n:'White sticker',p:15},pp:{n:'White PP',p:15},tr:{n:'Transparent',p:15}}; // price per sheet, RM
+function sheetCalc(){
+ const g=id=>+$(id).value||0,circ=$('skS').value==='c';
+ $('lkH').hidden=circ;$('lkW').textContent=circ?'Diameter (cm)':'Width (cm)';
+ const w=g('skW'),h=circ?w:g('skH'),price=g('skP'),sheets=Math.max(1,Math.floor(g('skQ'))||1);
+ const SW=g('skSW')||12,SH=g('skSH')||18,m=g('skM'),gap=g('skG')/10;
+ const A=Math.max(0,(SW-2*m)*2.54),B=Math.max(0,(SH-2*m)*2.54);
+ const n=(len,s)=>s>0?Math.max(0,Math.floor((len+gap)/(s+gap)+1e-9)):0;
+ let best={c:0,r:0,w,h,t:0};
+ for(const [a,b,t] of [[w,h,0],[h,w,1]]){const c=n(A,a),r=n(B,b);if(c*r>best.c*best.r)best={c,r,w:a,h:b,t}}
+ const auto=best.c*best.r,ov=Math.floor(g('skO')),per=ov>0?ov:auto;
+ $('skO').placeholder='auto ('+auto+')';
+ const lam=$('lbg').checked?'glossy':$('lbm').checked?'matte':'',eff=price+(lam?LAM:0),total=per?sheets*eff:0,pcs=sheets*per,lbl=MAT[$('skMat').value].n+' · '+(+w.toFixed(2))+(circ?' cm circle':' × '+(+h.toFixed(2))+' cm');
+ $('price').textContent='RM'+total.toFixed(2);$('skT').value=per?pcs:'';
+ if(!per){$('detail').textContent=lbl+' does not fit on the sheet';$('skInfo').textContent='Too big for the printable area ('+(+(A/2.54).toFixed(2))+'″ × '+(+(B/2.54).toFixed(2))+'″).'}
+ else{
+  $('detail').textContent=lbl+' · '+per+' pcs/sheet · '+sheets+' sheet'+(sheets>1?'s':'')+' = '+pcs+' pcs × RM'+price.toFixed(2)+(lam?' + RM'+LAM.toFixed(2)+' '+lam+' laminate':'');
+  $('skInfo').textContent='Fits '+per+' per sheet'+(ov>0?' (manual)':' ('+best.c+' × '+best.r+(best.t?', rotated':'')+')')+'. About RM'+(eff/per).toFixed(2)+' per piece.';
+ }
+ const cm2in=1/2.54;let svg='<svg viewBox="0 0 '+SW+' '+SH+'" style="display:block;margin:0 auto;width:min(100%,320px);height:auto"><rect x="0" y="0" width="'+SW+'" height="'+SH+'" fill="#fff" stroke="#667" stroke-width=".06"/>'
+  +'<rect x="'+m+'" y="'+m+'" width="'+(SW-2*m)+'" height="'+(SH-2*m)+'" fill="none" stroke="#0b6b3a" stroke-width=".04" stroke-dasharray=".25 .15"/>';
+ if(auto>0&&auto<=1500){
+  const gw=best.c*best.w+(best.c-1)*gap,gh=best.r*best.h+(best.r-1)*gap,ox=m+(A-gw)/2*cm2in,oy=m+(B-gh)/2*cm2in,tx=auto<=120;
+  const fs=Math.min(best.w,best.h)*cm2in*(circ?.28:.2),txt=(+best.w.toFixed(2))+'CM';
+  for(let i=0;i<best.c;i++)for(let j=0;j<best.r;j++){
+   const x=ox+i*(best.w+gap)*cm2in,y=oy+j*(best.h+gap)*cm2in,W=best.w*cm2in,H=best.h*cm2in;
+   svg+=circ?'<circle cx="'+(x+W/2)+'" cy="'+(y+H/2)+'" r="'+(W/2)+'" fill="#fff" stroke="#667" stroke-width=".03"/>':'<rect x="'+x+'" y="'+y+'" width="'+W+'" height="'+H+'" fill="#fff" stroke="#667" stroke-width=".03"/>';
+   if(tx)svg+='<text x="'+(x+W/2)+'" y="'+(y+H/2+fs*.35)+'" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="'+fs+'" fill="#000">'+(circ?txt:(+best.w.toFixed(1))+'×'+(+best.h.toFixed(1)))+'</text>';
+  }
+ }
+ $('skView').innerHTML=svg+'</svg>';
+}
+$('skMat').addEventListener('input',()=>{$('skP').value=MAT[$('skMat').value].p;sheetCalc()});
+$('skP').addEventListener('input',()=>{MAT[$('skMat').value].p=$('skP').value});
+[['lamg','lamm'],['lamm','lamg']].forEach(([a,b])=>$(a).addEventListener('change',()=>{if($(a).checked)$(b).checked=false;layout()}));
+[['lbg','lbm'],['lbm','lbg']].forEach(([a,b])=>$(a).addEventListener('change',()=>{if($(a).checked)$(b).checked=false;sheetCalc()}));
+document.querySelectorAll('.lamv').forEach(e=>e.textContent=LAM);
+['skS','skQ','skW','skH','skP','skO','skSW','skSH','skM','skG'].forEach(id=>$(id).addEventListener('input',sheetCalc));
+$('lpms').onchange=e=>{const L=LAY.print;L.m=e.target.value;L.R=L.mats[L.m].r;$('rate').value=L.R;layout()};
+$('lpts').onchange=e=>{const L=LAY.foam;L.t=e.target.value;L.R=L.rates[L.t];$('rate').value=L.R;layout()};
+$('rate').addEventListener('input',()=>{const L=LAY[curLay];if(L.mats)L.mats[L.m].r=$('rate').value;if(L.rates)L.rates[L.t]=$('rate').value});
 $('prod').onchange=e=>setProd(e.target.value);
 $('pt').onchange=e=>{const p=P.acr;p.t=e.target.value;p.rate=p.rates[p.t];$('pr').value=p.rate;calc()};
-['pw','ph','pq','pr'].forEach(id=>$(id).addEventListener('input',()=>{const p=P[prod];p.w=$('pw').value;p.h=$('ph').value;p.q=$('pq').value;p.rate=$('pr').value;if(p.rates)p.rates[p.t]=p.rate;calc()}));
+['pw','ph','pq','pr','px','pu','pl'].forEach(id=>$(id).addEventListener('input',()=>{const p=P[prod];if(p.x!==undefined)p.x=$('px').value;if(p.urg!==undefined)p.urg=$('pu').checked;if(p.loep!==undefined)p.loep=$('pl').checked;p.w=$('pw').value;p.h=$('ph').value;p.q=$('pq').value;p.rate=$('pr').value;if(p.rates)p.rates[p.t]=p.rate;calc()}));
 layout();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
