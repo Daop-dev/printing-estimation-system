@@ -103,14 +103,13 @@ body{overflow-x:hidden}
 </div>
 <div id="sheet" hidden>
 <section class="card set">
-<label class="f" style="grid-column:1/-1">Material<select id="skMat" style="margin-bottom:0"><option value="mk">White sticker</option><option value="pp">White PP</option><option value="tr">Transparent</option></select></label>
+<label class="f" style="grid-column:1/-1">Material<select id="skMat" style="margin-bottom:0"><option value="mk">Mirrorkote</option><option value="pp">White PP</option><option value="tr">Transparent</option></select></label>
 <label class="f">Shape<select id="skS" style="margin-bottom:0"><option value="c">Circle</option><option value="r">Square / rectangle</option></select></label>
 <label class="f">Number of sheets<input id="skQ" type="number" value="1" min="1" step="1" inputmode="numeric"></label>
 <label class="f"><span id="lkW">Size (cm)</span><input id="skW" type="number" value="5" min="0.1" step="any" inputmode="decimal"></label>
 <label class="f" id="lkH" hidden>Height (cm)<input id="skH" type="number" value="5" min="0.1" step="any" inputmode="decimal"></label>
 <label class="f">Price per sheet (RM)<input id="skP" type="number" value="15" min="0" step="any" inputmode="decimal"></label>
 <label class="f">Total pcs<input id="skT" type="number" disabled></label>
-<div style="grid-column:1/-1;display:grid;gap:8px"><label class="f" style="display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="lbg" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Laminate glossy (+RM<span class="lamv"></span> per sheet)</span></label><label class="f" style="display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="lbm" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Laminate matte (+RM<span class="lamv"></span> per sheet)</span></label></div>
 </section>
 <details class="card" style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Sheet settings</summary>
 <div class="set" style="margin-top:10px">
@@ -130,7 +129,7 @@ const $=id=>document.getElementById(id),st=$('stage');
 let objs=[],sel=null,uid=0,S=1,prod='cut',curLay='cut';
 const LAY={cut:{W:12,H:30,R:0.15,M:2,objs:[],mg:true},print:{W:48,H:48,R:10,M:0,objs:[],sq:true,lam:true,hint:'Max roll width 4 ft (48″). Price = used height × roll width × rate.',maxW:48,dw:12,m:'mk',mats:{mk:{n:'White sticker',r:10},pp:{n:'White PP',r:10},tr:{n:'Transparent',r:10}}},
  foam:{W:48,H:96,R:20,M:0,objs:[],sq:true,maxW:48,maxH:96,dw:12,t:'10mm',rates:{'10mm':20,'15mm':20,'20mm':20,'25mm':20,'30mm':20},lw:'Board width (″)',lh:'Board height (″)',hint:'Max board 4 × 8 ft (48″ × 96″). Price = used height × board width × rate.'}};
-const LAM=4.5; // laminate glossy or matte: RM per sq ft (Sticker print), RM per sheet (Sticker label)
+const LAM=4.5; // laminate glossy or matte: RM per sq ft (Sticker print only)
 const isLay=k=>k in LAY;
 const cfg=()=>{const L=LAY[curLay]||{};return{W:Math.min(+$('rw').value||12,L.maxW||1e9),H:Math.min(+$('mh').value||30,L.maxH||1e9),R:(+$('rate').value||0)/(L.sq?144:1),M:(+$('mg').value||0)/25.4}};
 function hullBox(o){
@@ -491,7 +490,7 @@ function setProd(k){
  $('ll').hidden=p.loep===undefined;if(p.loep!==undefined)$('pl').checked=!!p.loep;$('lp').textContent=LOEP;
  $('pw').value=p.w;$('ph').value=p.h;$('pq').value=p.q;$('pr').value=p.rate;calc();
 }
-const MAT={mk:{n:'White sticker',p:15},pp:{n:'White PP',p:15},tr:{n:'Transparent',p:15}}; // price per sheet, RM
+const MAT={mk:{n:'Mirrorkote',p:15},pp:{n:'White PP',p:15},tr:{n:'Transparent',p:15}}; // price per sheet, RM
 function sheetCalc(){
  const g=id=>+$(id).value||0,circ=$('skS').value==='c';
  $('lkH').hidden=circ;$('lkW').textContent=circ?'Diameter (cm)':'Width (cm)';
@@ -503,12 +502,12 @@ function sheetCalc(){
  for(const [a,b,t] of [[w,h,0],[h,w,1]]){const c=n(A,a),r=n(B,b);if(c*r>best.c*best.r)best={c,r,w:a,h:b,t}}
  const auto=best.c*best.r,ov=Math.floor(g('skO')),per=ov>0?ov:auto;
  $('skO').placeholder='auto ('+auto+')';
- const lam=$('lbg').checked?'glossy':$('lbm').checked?'matte':'',eff=price+(lam?LAM:0),total=per?sheets*eff:0,pcs=sheets*per,lbl=MAT[$('skMat').value].n+' · '+(+w.toFixed(2))+(circ?' cm circle':' × '+(+h.toFixed(2))+' cm');
+ const total=per?sheets*price:0,pcs=sheets*per,lbl=MAT[$('skMat').value].n+' · '+(+w.toFixed(2))+(circ?' cm circle':' × '+(+h.toFixed(2))+' cm');
  $('price').textContent='RM'+total.toFixed(2);$('skT').value=per?pcs:'';
  if(!per){$('detail').textContent=lbl+' does not fit on the sheet';$('skInfo').textContent='Too big for the printable area ('+(+(A/2.54).toFixed(2))+'″ × '+(+(B/2.54).toFixed(2))+'″).'}
  else{
-  $('detail').textContent=lbl+' · '+per+' pcs/sheet · '+sheets+' sheet'+(sheets>1?'s':'')+' = '+pcs+' pcs × RM'+price.toFixed(2)+(lam?' + RM'+LAM.toFixed(2)+' '+lam+' laminate':'');
-  $('skInfo').textContent='Fits '+per+' per sheet'+(ov>0?' (manual)':' ('+best.c+' × '+best.r+(best.t?', rotated':'')+')')+'. About RM'+(eff/per).toFixed(2)+' per piece.';
+  $('detail').textContent=lbl+' · '+per+' pcs/sheet · '+sheets+' sheet'+(sheets>1?'s':'')+' = '+pcs+' pcs × RM'+price.toFixed(2);
+  $('skInfo').textContent='Fits '+per+' per sheet'+(ov>0?' (manual)':' ('+best.c+' × '+best.r+(best.t?', rotated':'')+')')+'. About RM'+(price/per).toFixed(2)+' per piece.';
  }
  const cm2in=1/2.54;let svg='<svg viewBox="0 0 '+SW+' '+SH+'" style="display:block;margin:0 auto;width:min(100%,320px);height:auto"><rect x="0" y="0" width="'+SW+'" height="'+SH+'" fill="#fff" stroke="#667" stroke-width=".06"/>'
   +'<rect x="'+m+'" y="'+m+'" width="'+(SW-2*m)+'" height="'+(SH-2*m)+'" fill="none" stroke="#0b6b3a" stroke-width=".04" stroke-dasharray=".25 .15"/>';
@@ -526,7 +525,6 @@ function sheetCalc(){
 $('skMat').addEventListener('input',()=>{$('skP').value=MAT[$('skMat').value].p;sheetCalc()});
 $('skP').addEventListener('input',()=>{MAT[$('skMat').value].p=$('skP').value});
 [['lamg','lamm'],['lamm','lamg']].forEach(([a,b])=>$(a).addEventListener('change',()=>{if($(a).checked)$(b).checked=false;layout()}));
-[['lbg','lbm'],['lbm','lbg']].forEach(([a,b])=>$(a).addEventListener('change',()=>{if($(a).checked)$(b).checked=false;sheetCalc()}));
 document.querySelectorAll('.lamv').forEach(e=>e.textContent=LAM);
 ['skS','skQ','skW','skH','skP','skO','skSW','skSH','skM','skG'].forEach(id=>$(id).addEventListener('input',sheetCalc));
 $('lpms').onchange=e=>{const L=LAY.print;L.m=e.target.value;L.R=L.mats[L.m].r;$('rate').value=L.R;layout()};
