@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Price Estimator</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b6b3a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Estimator">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#eef3ef;--card:#fbfdfb;--ink:#11231a;--mut:#5b6f63;--line:#cbd9cf;--acc:#0b6b3a;--accbg:rgba(11,107,58,.12);--bad:#c2362b;--mat:#d4e9da;--grid:#a8cdb4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1712;--card:#17221b;--ink:#e8f1ea;--mut:#9bb0a2;--line:#2b3b30;--acc:#4cc38a;--accbg:rgba(76,195,138,.16);--bad:#ff7a6e}}
+:root[data-theme="dark"]{--bg:#0f1712;--card:#17221b;--ink:#e8f1ea;--mut:#9bb0a2;--line:#2b3b30;--acc:#4cc38a;--accbg:rgba(76,195,138,.16);--bad:#ff7a6e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.4 "Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+#price{font-size:40px;font-weight:800;letter-spacing:-.02em;color:var(--acc);line-height:1}
+#detail{font-size:13px;color:var(--mut);text-align:right}
+main{max-width:560px;margin:0 auto;padding:14px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.set{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label.f{display:block;font-size:13px;color:var(--mut)}
+input[type=number]{width:100%;box-sizing:border-box;margin-top:3px;padding:8px;font:600 16px inherit;font-family:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px}
+.btn{font:600 15px inherit;font-family:inherit;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.btn.pri{position:relative;overflow:hidden;background:var(--acc);border-color:var(--acc);color:var(--card)}
+.btn.del{color:var(--bad)}
+[hidden]{display:none!important}
+select{width:100%;box-sizing:border-box;margin:3px 0 12px;padding:10px;font:600 16px inherit;font-family:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px}
+#count{font-size:13px;color:var(--mut)}
+#stage{position:relative;width:100%;background-color:var(--mat);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);box-shadow:0 0 0 2px var(--ink);overflow:hidden;user-select:none;-webkit-user-select:none}
+#stage[data-empty]::after{content:"Add your design images, then drag to arrange them";position:absolute;inset:0 0 auto;padding:24px;text-align:center;color:#3d5546;font-weight:600}
+.ob{position:absolute;outline:1px dashed #0b6b3a;cursor:grab;touch-action:none}
+.ob img{position:absolute;pointer-events:none;transform-origin:center}
+.ob.sel{outline:2px solid #0b6b3a;background:rgba(11,107,58,.14)}
+.ob.out{outline:2px dashed #c2362b;background:rgba(194,54,43,.2)}
+#sel{margin-top:12px;display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+#sel label{flex:1 1 90px}
+</style>
+</head>
+<body>
+<div class="bar"><div id="price">RM0.00</div><div id="detail">Add an image to see the price</div></div>
+<main>
+<label class="f">Product<select id="prod"><option value="cut">Vinyl cut sticker</option><option value="banner">Banner</option><option value="print">Sticker print</option><option value="acr">Acrylic</option></select></label>
+<section id="simple" class="card set" hidden>
+<label class="f"><span id="lw">Width</span><input id="pw" type="number" min="0" step="any" inputmode="decimal"></label>
+<label class="f"><span id="lh">Height</span><input id="ph" type="number" min="0" step="any" inputmode="decimal"></label>
+<label class="f" id="lt" hidden style="grid-column:1/-1">Thickness<select id="pt" style="margin-bottom:0"><option>2mm</option><option>2.5mm</option><option>3mm</option><option>4mm</option></select></label>
+<label class="f">Quantity<input id="pq" type="number" min="1" step="1" inputmode="numeric"></label>
+<label class="f"><span id="lr">Rate</span><input id="pr" type="number" min="0" step="any" inputmode="decimal"></label>
+</section>
+<div id="cut">
+<section class="card set">
+<label class="f">Roll width (″)<input id="rw" type="number" value="12" min="1" step="0.5" inputmode="decimal"></label>
+<label class="f">Material height (″)<input id="mh" type="number" value="30" min="1" step="1" inputmode="decimal"></label>
+<label class="f">Rate (RM per sq in)<input id="rate" type="number" value="0.15" min="0" step="0.01" inputmode="decimal"></label>
+<label class="f">Cut margin (mm)<input id="mg" type="number" value="2" min="0" step="0.5" inputmode="decimal"></label>
+</section>
+<div class="row"><label class="btn pri">Add images<input id="file" type="file" accept="image/*" multiple style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer"></label><span id="count">In material 0 / 0</span></div>
+<div id="stage" data-empty></div>
+<section id="sel" class="card" hidden>
+<label class="f">Width (″)<input id="sw" type="number" min="0.1" step="0.1" inputmode="decimal"></label>
+<button class="btn" id="rot">Rotate 90°</button>
+<button class="btn del" id="rm">Remove</button>
+</section>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id),st=$('stage');
+let objs=[],sel=null,uid=0,S=1,prod='cut';
+const cfg=()=>({W:+$('rw').value||12,H:+$('mh').value||30,R:+$('rate').value||0,M:(+$('mg').value||0)/25.4});
+function box(o){const m=cfg().M,bw=o.w+2*m,bh=o.w/o.a+2*m;return o.r%180?{w:bh,h:bw}:{w:bw,h:bh}}
+function layout(){if(prod!=='cut')return;const c=cfg();S=st.clientWidth/c.W;st.style.height=c.H*S+'px';st.style.backgroundSize=S+'px '+S+'px';render()}
+function render(){
+ const c=cfg();let inn=0,top=1e9,bot=-1e9;
+ objs.forEach(o=>{
+  const b=box(o),cw=o.w,ch=o.w/o.a,e=.001;
+  Object.assign(o.el.style,{left:o.x*S+'px',top:o.y*S+'px',width:b.w*S+'px',height:b.h*S+'px'});
+  const i=o.img.style;i.width=cw*S+'px';i.height=ch*S+'px';i.left=(b.w-cw)/2*S+'px';i.top=(b.h-ch)/2*S+'px';i.transform='rotate('+o.r+'deg)';
+  const out=o.x<-e||o.y<-e||o.x+b.w>c.W+e||o.y+b.h>c.H+e;
+  if(!out)inn++;
+  o.el.classList.toggle('out',out);o.el.classList.toggle('sel',o===sel);
+  top=Math.min(top,o.y);bot=Math.max(bot,o.y+b.h);
+ });
+ const h=objs.length?bot-top:0;
+ $('price').textContent='RM'+(h*c.W*c.R).toFixed(2);
+ $('detail').textContent=objs.length?h.toFixed(2)+'″ tall × '+c.W+'″ × RM'+c.R.toFixed(2):'Add an image to see the price';
+ $('count').textContent='In material '+inn+' / '+objs.length;
+ if(objs.length)st.removeAttribute('data-empty');else st.setAttribute('data-empty','');
+}
+function select(o){sel=o;$('sel').hidden=!o;if(o)$('sw').value=+o.w.toFixed(2);render()}
+function mk(o){
+ const d=document.createElement('div');d.className='ob';
+ const i=new Image();i.src=o.src;i.draggable=false;d.appendChild(i);o.el=d;o.img=i;st.appendChild(d);
+ d.addEventListener('pointerdown',e=>{
+  select(o);const sx=e.clientX,sy=e.clientY,ox=o.x,oy=o.y;d.setPointerCapture(e.pointerId);d.style.cursor='grabbing';
+  const mv=ev=>{o.x=ox+(ev.clientX-sx)/S;o.y=oy+(ev.clientY-sy)/S;render()};
+  const up=()=>{d.style.cursor='';d.removeEventListener('pointermove',mv);d.removeEventListener('pointerup',up);d.removeEventListener('pointercancel',up)};
+  d.addEventListener('pointermove',mv);d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up);
+ });
+}
+function trim(u){return new Promise((ok,no)=>{
+ const i=new Image();
+ i.onload=()=>{
+  const nw=i.naturalWidth||800,nh=i.naturalHeight||800,k=Math.min(1,1000/Math.max(nw,nh)),w=Math.round(nw*k),h=Math.round(nh*k);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.drawImage(i,0,0,w,h);
+  const d=g.getImageData(0,0,w,h),p=d.data;let x0=w,y0=h,x1=-1,y1=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+   const j=(y*w+x)*4;
+   if(p[j+3]>0&&p[j]>245&&p[j+1]>245&&p[j+2]>245)p[j+3]=0;
+   if(p[j+3]>20){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  }
+  if(x1<0)return no();
+  g.putImageData(d,0,0);
+  const cw=x1-x0+1,ch=y1-y0+1,o=document.createElement('canvas');o.width=cw;o.height=ch;
+  o.getContext('2d').drawImage(c,x0,y0,cw,ch,0,0,cw,ch);
+  ok({src:o.toDataURL('image/png'),a:cw/ch});
+ };
+ i.onerror=no;i.src=u;
+})}
+function add(t){
+ const c=cfg(),b=objs.length?Math.max(...objs.map(q=>q.y+box(q).h)):0;
+ const o={id:++uid,src:t.src,a:t.a,w:Math.min(4,c.W/2),r:0,x:0,y:b};
+ objs.push(o);mk(o);select(o);
+}
+const rd=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(f)});
+$('file').onchange=async e=>{
+ const fs=[...e.target.files];let bad=0;
+ for(const f of fs){try{add(await trim(await rd(f)))}catch(_){bad++}}
+ e.target.value='';
+ if(bad)$('count').textContent='Could not read '+bad+' file'+(bad>1?'s':'')+'. Try PNG or JPG.';
+};
+$('sw').oninput=e=>{const v=+e.target.value;if(sel&&v>0){sel.w=v;render()}};
+$('rot').onclick=()=>{if(sel){sel.r=(sel.r+90)%360;render()}};
+$('rm').onclick=()=>{if(sel){sel.el.remove();objs=objs.filter(o=>o!==sel);select(null)}};
+st.addEventListener('pointerdown',e=>{if(e.target===st)select(null)});
+['rw','mh','rate','mg'].forEach(id=>$(id).addEventListener('input',layout));
+addEventListener('resize',layout);
+const P={cut:{},banner:{u:'ft',sq:'sq ft',w:6,h:3,q:1,rate:1.5},print:{u:'cm',sq:'sq cm',w:10,h:10,q:1,rate:0.02},acr:{u:'in',sq:'sq in',w:8,h:12,q:1,rate:0.26,t:'3mm',rates:{'2mm':0.19,'2.5mm':0.23,'3mm':0.26,'4mm':0.32}}};
+function calc(){
+ const p=P[prod],w=+$('pw').value||0,h=+$('ph').value||0,q=Math.max(1,+$('pq').value||1),r=+$('pr').value||0;
+ $('price').textContent='RM'+(w*h*r*q).toFixed(2);
+ $('detail').textContent=w+' × '+h+' '+p.u+(p.rates?' ('+p.t+')':'')+' = '+(+(w*h).toFixed(2))+' '+p.sq+' × RM'+r.toFixed(2)+(q>1?' × '+q:'');
+}
+function setProd(k){
+ prod=k;const c=k==='cut',p=P[k];$('cut').hidden=!c;$('simple').hidden=c;
+ if(c){layout();return}
+ $('lw').textContent='Width ('+p.u+')';$('lh').textContent='Height ('+p.u+')';$('lr').textContent='Rate (RM per '+p.sq+')';
+ $('lt').hidden=!p.rates;if(p.rates)$('pt').value=p.t;
+ $('pw').value=p.w;$('ph').value=p.h;$('pq').value=p.q;$('pr').value=p.rate;calc();
+}
+$('prod').onchange=e=>setProd(e.target.value);
+$('pt').onchange=e=>{const p=P.acr;p.t=e.target.value;p.rate=p.rates[p.t];$('pr').value=p.rate;calc()};
+['pw','ph','pq','pr'].forEach(id=>$(id).addEventListener('input',()=>{const p=P[prod];p.w=$('pw').value;p.h=$('ph').value;p.q=$('pq').value;p.rate=$('pr').value;if(p.rates)p.rates[p.t]=p.rate;calc()}));
+layout();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
