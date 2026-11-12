@@ -23,7 +23,14 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 #price{font-size:40px;font-weight:800;letter-spacing:-.02em;color:var(--acc);line-height:1}
 #detail{font-size:13px;color:var(--mut);text-align:right}
-main{max-width:560px;margin:0 auto;padding:14px 16px 40px}
+main{max-width:560px;margin:0 auto;padding:14px 16px 96px}
+#tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+#tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 8px 9px;border:0;border-top:3px solid transparent;background:none;color:var(--mut);font:600 13px inherit;font-family:inherit;cursor:pointer}
+#tabs button[aria-selected=true]{color:var(--acc);border-top-color:var(--acc)}
+#conv h1{margin:2px 2px 14px;font-size:24px;font-weight:800;letter-spacing:-.02em}
+.cv{display:grid;gap:12px}
+.cv input[type=number]{font-size:22px;padding:12px;margin-top:4px}
+.cv .ftin{margin:2px 2px 0;font-size:15px;color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 .set{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 label.f{display:block;font-size:13px;color:var(--mut)}
@@ -65,8 +72,8 @@ body{overflow-x:hidden}
 </style>
 </head>
 <body>
-<div class="bar"><div id="price">RM0.00</div><div id="detail">Add a file to see the price</div></div>
-<main>
+<div class="bar" id="estBar" hidden><div id="price">RM0.00</div><div id="detail">Add a file to see the price</div></div>
+<main id="est" hidden>
 <label class="f">Product<select id="prod"><option value="cut">Vinyl cut sticker</option><option value="label">Sticker label</option><option value="banner">Banner</option><option value="bunting">Bunting</option><option value="print">Sticker print</option><option value="acr">Acrylic</option><option value="foam">PVC foam board</option></select></label>
 <section id="simple" class="card set" hidden>
 <label class="f"><span id="lw">Width</span><input id="pw" type="number" min="0" step="any" inputmode="decimal"></label>
@@ -75,6 +82,7 @@ body{overflow-x:hidden}
 <label class="f">Quantity<input id="pq" type="number" min="1" step="1" inputmode="numeric"></label>
 <label class="f" id="lx" hidden>Finishing (RM per piece)<input id="px" type="number" min="0" step="any" inputmode="decimal"></label>
 <label class="f"><span id="lr">Rate</span><input id="pr" type="number" min="0" step="any" inputmode="decimal"></label>
+<div id="ld" hidden style="grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input id="pdc" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Design fee</span></label><span style="margin-left:auto">RM</span><input id="pd" type="number" min="0" step="any" inputmode="decimal" disabled style="width:110px;margin:0"></div>
 <label class="f" id="lu" hidden style="grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="pu" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Urgent order (+<span id="up">30</span>% fee)</span></label>
 <label class="f" id="ll" hidden style="grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="pl" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>LO/EP fee (+<span id="lp">30</span>%)</span></label>
 </section>
@@ -84,6 +92,7 @@ body{overflow-x:hidden}
 <label class="f"><span id="lmh">Material height (″)</span><input id="mh" type="number" value="30" min="1" step="1" inputmode="decimal"></label>
 <label class="f"><span id="lrt">Rate (RM per sq in)</span><input id="rate" type="number" value="0.15" min="0" step="0.01" inputmode="decimal"></label>
 <label class="f" id="lmg">Cut margin (mm)<input id="mg" type="number" value="2" min="0" step="0.5" inputmode="decimal"></label>
+<div id="qs" style="grid-column:1/-1"><div style="font-size:13px;color:var(--mut)">Size without a file (″)</div><div style="display:flex;align-items:center;gap:8px"><input id="qw" type="number" min="0.1" step="any" inputmode="decimal" placeholder="Width" aria-label="Width in inches"><span style="margin-top:3px">×</span><input id="qh" type="number" min="0.1" step="any" inputmode="decimal" placeholder="Height" aria-label="Height in inches"><button class="btn" id="qclr" type="button" style="margin-top:3px">Clear</button></div><p class="hint" style="margin:6px 2px 0">No file? Type a width and height to price a plain box. Adding your first file replaces it.</p></div>
 <label class="f" id="lpt" hidden>Thickness<select id="lpts" style="margin-bottom:0"><option>10mm</option><option>15mm</option><option>20mm</option><option>25mm</option><option>30mm</option></select></label>
 <label class="f" id="lpm" hidden>Material<select id="lpms" style="margin-bottom:0"><option value="mk">White sticker</option><option value="pp">White PP</option><option value="tr">Transparent</option></select></label>
 <div id="lam" hidden style="grid-column:1/-1;display:grid;gap:8px"><label class="f" style="display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="lamg" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Laminate glossy (+RM<span class="lamv"></span> per sq ft)</span></label><label class="f" style="display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink)"><input id="lamm" type="checkbox" style="width:22px;height:22px;margin:0;accent-color:var(--acc)"><span>Laminate matte (+RM<span class="lamv"></span> per sq ft)</span></label></div>
@@ -123,12 +132,26 @@ body{overflow-x:hidden}
 <div id="skView" style="margin-top:10px;padding:10px;background:var(--mat);border-radius:12px;text-align:center"></div>
 </div>
 </main>
+<main id="conv">
+<h1>Unit converter</h1>
+<section class="card cv">
+<label class="f">Millimetre (mm)<input id="cv_mm" data-f="1" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></label>
+<label class="f">Centimetre (cm)<input id="cv_cm" data-f="10" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></label>
+<label class="f">Inch (″)<input id="cv_in" data-f="25.4" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></label>
+<label class="f">Foot (ft)<input id="cv_ft" data-f="304.8" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></label>
+<label class="f">Metre (m)<input id="cv_m" data-f="1000" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></label>
+<p id="cvft" class="ftin" hidden></p>
+<button class="btn" id="cvclr" type="button">Clear</button>
+</section>
+<p class="hint">Type in any box and the others change by themselves.</p>
+</main>
+<nav id="tabs" aria-label="Pages"><button id="tabC" aria-selected="true" type="button"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg>Converter</button><button id="tabE" aria-selected="false" type="button"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg>Estimator</button></nav>
 <div id="ctx" hidden><button id="cg">Group</button><button id="cu">Ungroup</button><button id="cr">Remove</button></div>
 <script>
 const $=id=>document.getElementById(id),st=$('stage');
 let objs=[],sel=null,uid=0,S=1,prod='cut',curLay='cut';
-const LAY={cut:{W:12,H:30,R:0.15,M:2,objs:[],mg:true},print:{W:48,H:48,R:10,M:0,objs:[],sq:true,lam:true,hint:'Max roll width 4 ft (48″). Price = used height × roll width × rate.',maxW:48,dw:12,m:'mk',mats:{mk:{n:'White sticker',r:10},pp:{n:'White PP',r:10},tr:{n:'Transparent',r:10}}},
- foam:{W:48,H:96,R:20,M:0,objs:[],sq:true,maxW:48,maxH:96,dw:12,t:'10mm',rates:{'10mm':20,'15mm':20,'20mm':20,'25mm':20,'30mm':20},lw:'Board width (″)',lh:'Board height (″)',hint:'Max board 4 × 8 ft (48″ × 96″). Price = used height × board width × rate.'}};
+const LAY={cut:{W:12,H:30,R:0.15,M:2,objs:[],mg:true,qs:true},print:{W:48,H:48,R:10,M:0,objs:[],qs:true,sq:true,lam:true,hint:'Max roll width 4 ft (48″). Price = used height × roll width × rate.',maxW:48,dw:12,m:'mk',mats:{mk:{n:'White sticker',r:10},pp:{n:'White PP',r:10},tr:{n:'Transparent',r:10}}},
+ foam:{W:48,H:96,R:20,M:0,objs:[],qs:true,sq:true,maxW:48,maxH:96,dw:12,t:'10mm',rates:{'10mm':20,'15mm':20,'20mm':20,'25mm':20,'30mm':20},lw:'Board width (″)',lh:'Board height (″)',hint:'Max board 4 × 8 ft (48″ × 96″). Price = used height × board width × rate.'}};
 const LAM=4.5; // laminate glossy or matte: RM per sq ft (Sticker print only)
 const isLay=k=>k in LAY;
 const cfg=()=>{const L=LAY[curLay]||{};return{W:Math.min(+$('rw').value||12,L.maxW||1e9),H:Math.min(+$('mh').value||30,L.maxH||1e9),R:(+$('rate').value||0)/(L.sq?144:1),M:(+$('mg').value||0)/25.4}};
@@ -141,6 +164,8 @@ function hullBox(o){
 }
 function bounds(o){const m=cfg().M,b=hullBox(o);return{x0:b.x0-m,y0:b.y0-m,x1:b.x1+m,y1:b.y1+m}}
 function layout(){if(!isLay(prod))return;const L=LAY[curLay];if(L.maxW&&+$('rw').value>L.maxW)$('rw').value=L.maxW;if(L.maxH&&+$('mh').value>L.maxH)$('mh').value=L.maxH;const c=cfg(),u=L.sq?12:1;S=st.clientWidth/c.W;st.style.height=c.H*S+'px';st.style.backgroundSize=S*u+'px '+S*u+'px';render()}
+let qbox=null;
+const BOXSRC='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="0" y="0" width="100" height="100" fill="rgba(11,107,58,.28)" stroke="#0b6b3a" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>');
 let sels=[],multiMode=false,lastPT='mouse',gf=null;
 const HND=[[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]];
 const posOf=ev=>{const R=st.getBoundingClientRect();return[(ev.clientX-R.left)/S,(ev.clientY-R.top)/S]};
@@ -177,6 +202,12 @@ function render(){
  $('count').textContent='In material '+inn+' / '+objs.length+(multi?' · '+sels.length+' selected':'');
  if(objs.length)st.removeAttribute('data-empty');else st.setAttribute('data-empty','');
  if(sel){if(document.activeElement!==$('sw'))$('sw').value=+sel.w.toFixed(2);if(document.activeElement!==$('sa'))$('sa').value=Math.round(sel.r)}
+ if(L.qs){
+  if(qbox&&!objs.includes(qbox))qbox=null;
+  const ae=document.activeElement;
+  if(qbox){if(ae!==$('qw'))$('qw').value=+qbox.w.toFixed(2);if(ae!==$('qh'))$('qh').value=+(qbox.w/qbox.a).toFixed(2)}
+  else if(ae!==$('qw')&&ae!==$('qh')){$('qw').value='';$('qh').value=''}
+ }
  if(!gf)mkGf();
  if(multi){const g=gbox(sels);Object.assign(gf.style,{display:'block',left:g.x0*S+'px',top:g.y0*S+'px',width:(g.x1-g.x0)*S+'px',height:(g.y1-g.y0)*S+'px'})}else gf.style.display='none';
 }
@@ -269,6 +300,7 @@ function trim(u){return new Promise((ok,no)=>{
  i.onerror=no;i.src=u;
 })}
 function add(t){
+ if(qbox&&objs.length===1&&objs[0]===qbox){setSel([]);qbox.el.remove();objs=[];qbox=null;$('qw').value=$('qh').value=''}
  const c=cfg(),top=objs.length?Math.max(...objs.map(q=>bounds(q).y1)):0;
  const o={id:++uid,src:t.src,a:t.a,hull:t.hull,w:Math.min(LAY[curLay].dw||4,c.W/2),r:0,cx:0,cy:0,svg:t.svg,box:{x0:t.x0,y0:t.y0,cw:t.cw,ch:t.ch}};
  const b=bounds(o);o.cx=-b.x0;o.cy=top-b.y0;
@@ -447,6 +479,22 @@ $('file').onchange=async e=>{
  if(skip)$('count').textContent='Only SVG or EPS files are supported.';
  else if(bad)$('count').textContent='Could not open '+bad+' file'+(bad>1?'s':'')+'. In Illustrator, use Save As SVG (convert text to outlines). ['+why+']';
 };
+function qsInput(){
+ if(!LAY[curLay].qs)return;
+ const w=parseFloat($('qw').value),h=parseFloat($('qh').value);
+ if(w>0&&h>0){
+  if(!qbox||!objs.includes(qbox)){
+   const c=cfg(),top=objs.length?Math.max(...objs.map(q=>bounds(q).y1)):0;
+   qbox={id:++uid,src:BOXSRC,a:w/h,hull:[[0,0],[1,0],[1,1],[0,1]],w,r:0,cx:0,cy:0};
+   const b=bounds(qbox);qbox.cx=-b.x0;qbox.cy=top-b.y0;objs.push(qbox);mk(qbox);select(qbox);
+  }else{qbox.w=w;qbox.a=w/h}
+ }else if(qbox&&$('qw').value===''&&$('qh').value===''){
+  setSel(sels.filter(o=>o!==qbox));qbox.el.remove();objs=objs.filter(o=>o!==qbox);qbox=null;
+ }
+ render();
+}
+$('qw').addEventListener('input',qsInput);$('qh').addEventListener('input',qsInput);
+$('qclr').onclick=()=>{$('qw').value='';$('qh').value='';qsInput()};
 $('sw').oninput=e=>{const v=+e.target.value;if(sel&&v>=.2){sel.w=v;render()}};
 $('sa').oninput=e=>{const v=parseFloat(e.target.value);if(sel&&isFinite(v)){sel.r=((v%360)+360)%360;render()}};
 $('rot').onclick=()=>{
@@ -458,24 +506,26 @@ $('rm').onclick=()=>{if(!sels.length)return;const dead=sels.slice();dead.forEach
 addEventListener('resize',layout);
 const URG=30; // urgent fee, percent
 const LOEP=30; // LO/EP fee, percent
-const P={cut:{},banner:{u:'ft',sq:'sq ft',w:6,h:3,q:1,rate:1.5,urg:false,loep:false},bunting:{u:'ft',sq:'sq ft',w:2,h:6,q:1,rate:1.7,x:4,urg:false,loep:false},acr:{u:'in',sq:'sq in',w:8,h:12,q:1,rate:0.26,t:'3mm',rates:{'2mm':0.19,'2.5mm':0.23,'3mm':0.26,'4mm':0.32}}};
+const P={cut:{},banner:{u:'ft',sq:'sq ft',w:6,h:3,q:1,rate:1.5,d:0,dc:false,urg:false,loep:false},bunting:{u:'ft',sq:'sq ft',w:2,h:6,q:1,rate:1.7,x:4,d:0,dc:false,urg:false,loep:false},acr:{u:'in',sq:'sq in',w:8,h:12,q:1,rate:0.26,t:'3mm',rates:{'2mm':0.19,'2.5mm':0.23,'3mm':0.26,'4mm':0.32}}};
 function calc(){
- const p=P[prod],w=+$('pw').value||0,h=+$('ph').value||0,q=Math.max(1,+$('pq').value||1),r=+$('pr').value||0,x=p.x!==undefined?(+$('px').value||0):0;
- const base=(w*h*r+x)*q,urg=p.urg!==undefined&&$('pu').checked,lo=p.loep!==undefined&&$('pl').checked,fee=urg?base*URG/100:0,fee2=lo?base*LOEP/100:0;
- $('price').textContent='RM'+(base+fee+fee2).toFixed(2);
+ const p=P[prod],w=+$('pw').value||0,h=+$('ph').value||0,q=Math.max(1,+$('pq').value||1),r=+$('pr').value||0,x=p.x!==undefined?(+$('px').value||0):0,dz=p.d!==undefined&&$('pdc').checked?(+$('pd').value||0):0;
+ const base=(w*h*r+x)*q,sub=base+dz,urg=p.urg!==undefined&&$('pu').checked,lo=p.loep!==undefined&&$('pl').checked,fee=urg?sub*URG/100:0,fee2=lo?sub*LOEP/100:0; // design fee is added first, then urgent and LO/EP are worked out on the total
+ $('price').textContent='RM'+(sub+fee+fee2).toFixed(2);
  let d=w+' × '+h+' '+p.u+(p.rates?' ('+p.t+')':'')+' = '+(+(w*h).toFixed(2))+' '+p.sq+' × RM'+r.toFixed(2);
  if(p.x!==undefined)d+=' + RM'+x.toFixed(2);
  if(q>1)d=(p.x!==undefined?'('+d+')':d)+' × '+q;
+ if(dz)d+=' + RM'+dz.toFixed(2)+' design';
  if(urg)d+=' + RM'+fee.toFixed(2)+' urgent ('+URG+'%)';
  if(lo)d+=' + RM'+fee2.toFixed(2)+' LO/EP ('+LOEP+'%)';
  $('detail').textContent=d;
 }
 function loadLay(k){
- const A=LAY[curLay];A.W=$('rw').value;A.H=$('mh').value;A.R=$('rate').value;A.M=$('mg').value;A.objs=objs;
+ const A=LAY[curLay];A.W=$('rw').value;A.H=$('mh').value;A.R=$('rate').value;A.M=$('mg').value;A.objs=objs;A.qb=qbox;
  if(curLay!==k){setSel([]);objs.forEach(o=>o.el.remove())}
- curLay=k;const L=LAY[k];objs=L.objs;objs.forEach(o=>st.appendChild(o.el));
+ curLay=k;const L=LAY[k];objs=L.objs;qbox=L.qb||null;
+ $('qw').value=qbox?+qbox.w.toFixed(2):'';$('qh').value=qbox?+(qbox.w/qbox.a).toFixed(2):'';objs.forEach(o=>st.appendChild(o.el));
  $('rw').value=L.W;$('mh').value=L.H;$('rate').value=L.R;$('mg').value=L.M;
- $('lmg').hidden=!L.mg;$('lrt').textContent=L.sq?'Rate (RM per sq ft)':'Rate (RM per sq in)';$('rate').step=L.sq?'0.5':'0.01';
+ $('lmg').hidden=!L.mg;$('qs').hidden=!L.qs;$('lrt').textContent=L.sq?'Rate (RM per sq ft)':'Rate (RM per sq in)';$('rate').step=L.sq?'0.5':'0.01';
  $('lam').hidden=!L.lam;$('lpm').hidden=!L.mats;if(L.mats)$('lpms').value=L.m;$('lpt').hidden=!L.rates;if(L.rates)$('lpts').value=L.t;
  $('mx2').hidden=!L.hint;$('mx2').textContent=L.hint||'';$('lrw').textContent=L.lw||'Roll width (″)';$('lmh').textContent=L.lh||'Material height (″)';
 }
@@ -486,6 +536,7 @@ function setProd(k){
  $('lw').textContent='Width ('+p.u+')';$('lh').textContent='Height ('+p.u+')';$('lr').textContent='Rate (RM per '+p.sq+')';
  $('lt').hidden=!p.rates;if(p.rates)$('pt').value=p.t;
  $('lx').hidden=p.x===undefined;if(p.x!==undefined)$('px').value=p.x;
+ $('ld').hidden=p.d===undefined;if(p.d!==undefined){$('pd').value=p.d;$('pdc').checked=!!p.dc;$('pd').disabled=!p.dc}
  $('lu').hidden=p.urg===undefined;if(p.urg!==undefined)$('pu').checked=!!p.urg;$('up').textContent=URG;
  $('ll').hidden=p.loep===undefined;if(p.loep!==undefined)$('pl').checked=!!p.loep;$('lp').textContent=LOEP;
  $('pw').value=p.w;$('ph').value=p.h;$('pq').value=p.q;$('pr').value=p.rate;calc();
@@ -532,7 +583,23 @@ $('lpts').onchange=e=>{const L=LAY.foam;L.t=e.target.value;L.R=L.rates[L.t];$('r
 $('rate').addEventListener('input',()=>{const L=LAY[curLay];if(L.mats)L.mats[L.m].r=$('rate').value;if(L.rates)L.rates[L.t]=$('rate').value});
 $('prod').onchange=e=>setProd(e.target.value);
 $('pt').onchange=e=>{const p=P.acr;p.t=e.target.value;p.rate=p.rates[p.t];$('pr').value=p.rate;calc()};
-['pw','ph','pq','pr','px','pu','pl'].forEach(id=>$(id).addEventListener('input',()=>{const p=P[prod];if(p.x!==undefined)p.x=$('px').value;if(p.urg!==undefined)p.urg=$('pu').checked;if(p.loep!==undefined)p.loep=$('pl').checked;p.w=$('pw').value;p.h=$('ph').value;p.q=$('pq').value;p.rate=$('pr').value;if(p.rates)p.rates[p.t]=p.rate;calc()}));
+['pw','ph','pq','pr','px','pd','pdc','pu','pl'].forEach(id=>$(id).addEventListener('input',()=>{const p=P[prod];if(p.d!==undefined){p.d=$('pd').value;p.dc=$('pdc').checked;$('pd').disabled=!p.dc}if(p.x!==undefined)p.x=$('px').value;if(p.urg!==undefined)p.urg=$('pu').checked;if(p.loep!==undefined)p.loep=$('pl').checked;p.w=$('pw').value;p.h=$('ph').value;p.q=$('pq').value;p.rate=$('pr').value;if(p.rates)p.rates[p.t]=p.rate;calc()}));
+const CVS=[...document.querySelectorAll('.cv input[data-f]')];
+const cvFmt=v=>{const a=Math.abs(v);return String(a>=1e9||(a>0&&a<1e-6)?+v.toPrecision(8):+v.toFixed(5))};
+function cvSet(src){
+ const raw=src?src.value:'',mm=raw===''?NaN:parseFloat(raw)*(src?+src.dataset.f:1);
+ CVS.forEach(i=>{if(i!==src)i.value=isFinite(mm)?cvFmt(mm/+i.dataset.f):''});
+ const t=isFinite(mm)&&mm>0?+(mm/25.4).toFixed(3):0,ft=Math.floor(t/12),r=+(t-ft*12).toFixed(3);
+ $('cvft').hidden=!t;$('cvft').textContent=t?'= '+ft+' ft '+r+' in':'';
+}
+CVS.forEach(i=>i.addEventListener('input',()=>cvSet(i)));
+$('cvclr').onclick=()=>{CVS.forEach(i=>i.value='');cvSet(null);CVS[0].focus()};
+function showPage(p){
+ const e=p==='est';$('conv').hidden=e;$('est').hidden=!e;$('estBar').hidden=!e;
+ $('tabC').setAttribute('aria-selected',String(!e));$('tabE').setAttribute('aria-selected',String(e));
+ scrollTo(0,0);if(e)layout();
+}
+$('tabC').onclick=()=>showPage('conv');$('tabE').onclick=()=>showPage('est');
 layout();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
